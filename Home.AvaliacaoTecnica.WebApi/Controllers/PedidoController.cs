@@ -1,32 +1,34 @@
-using Azure.Messaging.ServiceBus;
+using AutoMapper;
+using Home.AvaliacaoTecnica.Application.Pedido.EnviarPedido;
 using Home.AvaliacaoTecnica.Contracts.Contratos;
 using Home.AvaliacaoTecnica.Infra.Data.Entities;
 using Home.AvaliacaoTecnica.Infra.Data.Repositories;
-using Home.AvalicaoTecnica.WebApi.Services;
+using Home.AvaliacaoTecnica.WebApi.Features.Pedido.EnviarPedido;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Pedido.Contracts.Contratos;
-using System.Text.Json;
 
 namespace Home.AvalicaoTecnica.WebApi.Controllers;
 
 /// <summary>
-/// Controlador responsável pelo envio e consulta de pedidos.
+/// Controller responsável pelo envio e consulta de pedidos.
 /// </summary>
 [ApiController]
 [Route("api/pedidos")]
 public class PedidoController : ControllerBase
 {
-    private readonly Serilog.ILogger _logger;
-    private readonly ServiceBusSenderFactory _senderFactory;
-    private readonly PedidoRepository _store;
+    private readonly PedidoRepository _pedidoRepository;
+
+    private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
 
     public PedidoController(Serilog.ILogger logger,
-                            ServiceBusSenderFactory serviceBusSenderFactory,
-                            PedidoRepository store)
+                            PedidoRepository pedidoRepository,
+                            IMediator mediator,
+                            IMapper mapper)
     {
-        _logger = logger;
-        _senderFactory = serviceBusSenderFactory;
-        _store = store;
+        _pedidoRepository = pedidoRepository;
+        _mediator = mediator;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -44,7 +46,10 @@ public class PedidoController : ControllerBase
         if (string.IsNullOrWhiteSpace(status))
             return BadRequest("Status é obrigatório.");
 
-        var pedidos = await _store.ObterPorStatusAsync(status);
+        //todo: refatprar o codigo para levar a logica para a camada de application
+        //todo: a camada de controler nao poder se comunicar com a camada de repositorio, tem que passar pela appication
+
+        var pedidos = await _pedidoRepository.ObterPorStatusAsync(status);
         return Ok(pedidos);
     }
 
@@ -60,7 +65,9 @@ public class PedidoController : ControllerBase
     [Consumes("application/json")]
     public async Task<IActionResult> ObterPorId(int id)
     {
-        var pedido = await _store.ObterPorIdAsync(id);
+        //todo: refatprar o codigo para levar a logica para a camada de application
+        //todo: a camada de controler nao poder se comunicar com a camada de dominio, tem que passar pela appication
+        var pedido = await _pedidoRepository.ObterPorIdAsync(id);
         if (pedido == null)
             return NotFound(new ProblemDetails
             {
@@ -86,70 +93,41 @@ public class PedidoController : ControllerBase
         return Ok(response);
     }
 
+    
+
     /// <summary>
-    /// Cria um novo pedido e envia para o barramento de mensagens.
+    /// Envia informacoes do pedido para servico de gerenciamento de pedidos
     /// </summary>
-    /// <returns>Dados do pedido enviado</returns>
+    /// <param name="request">O request do pedido</param>
+    /// <returns>Pedido enviado</returns>
     [HttpPost]
     [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public async Task<IActionResult> CriarPedido([FromBody] PedidoRequestDto pedidoRequest)
+    public async Task<IActionResult> EnviarPedido([FromBody] EnviarPedidoRequest request)
     {
-        if (pedidoRequest == null || pedidoRequest.Itens == null || !pedidoRequest.Itens.Any())
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Pedido inválido",
-                Detail = "O pedido e seus itens devem ser informados.",
-                Status = 400
-            });
-        }
-
         try
         {
-            var sender = _senderFactory.CreateSender("pedidos");
+            var validator = new EnviarPedidoValidator();
+            var validationResult = await validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
 
-            var json = JsonSerializer.Serialize(pedidoRequest);
-            await sender.SendMessageAsync(new ServiceBusMessage(json));
-            _logger.Information("Pedido {Id} enviado ao topico com sucesso", pedidoRequest.PedidoId);
+            var enviarPedidoCommand = _mapper.Map<EnviarPedidoCommand>(request);
 
-            //todo: Criar chamada para command para registrar o pedido no banco de dados em memoria
-            var pedidoRegistrado = new PedidoEnviado
+            var result = await _mediator.Send(enviarPedidoCommand);
+
+            return CreatedAtAction(nameof(EnviarPedido), new { id = result.PedidoId }, new
             {
-                PedidoId = pedidoRequest.PedidoId,
-                ClienteId = pedidoRequest.ClienteId,
-                Status = "Criado",
-                EnviadoEm = DateTime.UtcNow,
-                Itens = pedidoRequest.Itens.Select(i => new PedidoItemEnviado
-                {
-                    ProdutoId = i.ProdutoId,
-                    Quantidade = i.Quantidade,
-                    Valor = i.Valor
-                }).ToList()
-            };
-
-            await _store.AdicionarAsync(pedidoRegistrado);
-
-            return CreatedAtAction(nameof(CriarPedido), new { id = pedidoRequest.PedidoId }, new
-            {
-                pedidoId = pedidoRequest.PedidoId,
+                pedidoId = result.PedidoId,
                 Status = "Criado"
             });
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Erro ao enviar pedido");
-
-            return StatusCode(500, new ProblemDetails
-            {
-                Title = "Erro interno",
-                Detail = "Ocorreu um erro ao tentar enviar o pedido.",
-                Status = 500
-            });
+            return BadRequest(ex.Message);
         }
-
     }
 }

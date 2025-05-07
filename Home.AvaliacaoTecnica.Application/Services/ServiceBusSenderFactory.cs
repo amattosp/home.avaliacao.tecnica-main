@@ -1,11 +1,12 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration;
 
-namespace Home.AvalicaoTecnica.WebApi.Services
+namespace Home.AvaliacaoTecnica.Application.Services
 {
-    
-    public class ServiceBusSenderFactory
+    public class ServiceBusSenderFactory : IServiceBusSenderFactory
     {
         private readonly ServiceBusClient _client;
+
         public ServiceBusSenderFactory(IConfiguration configuration)
         {
             string connectionString = configuration.GetConnectionString("ServiceBus")!;
@@ -17,5 +18,4 @@ namespace Home.AvalicaoTecnica.WebApi.Services
             return _client.CreateSender(topicName);
         }
     }
-
 }
