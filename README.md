@@ -26,6 +26,21 @@ Certifique-se de ter as seguintes ferramentas instaladas:
 * [Visual Studio](https://visualstudio.microsoft.com/) (para projetos .NET)
 * [Docker](https://www.docker.com/) (se aplicável)
 
+### ⚠️ Configuração Obrigatória: Azure Service Bus
+
+Antes de executar a aplicação, é necessário configurar a chave de acesso ao Azure Service Bus.
+
+1. Obtenha a connection string válida do Azure Service Bus.
+2. No arquivo `appsettings.Development.json` (ou o usado para o ambiente), adicione:
+
+"AzureServiceBus": {
+  "ConnectionString": "sua-connection-string-aqui"
+ }
+ 
+ Sem essa configuração, o projeto não será capaz de se conectar à fila do Azure Service Bus e falhará na inicialização.
+ 
+ ---
+
 ### Passos para Execução
 
 1. Clone o repositório:
@@ -47,7 +62,7 @@ Certifique-se de ter as seguintes ferramentas instaladas:
 
 4. Execute o projeto:
 
-   * No Visual Studio, pressione `F5` para iniciar a aplicação.([DEV Community][3])
+   * No Visual Studio, pressione `F5` para iniciar a aplicação.
 
 ---
 
@@ -70,7 +85,7 @@ O projeto foi desenvolvido utilizando as seguintes tecnologias:
 * ASP.NET Core
 * Entity Framework Core
 * Docker (para containerização)
-* XUnit (para testes automatizados)([Embarcados][4])
+* XUnit (para testes automatizados)
 
 ---
 
