@@ -12,18 +12,25 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.ApplicationInsights(
+        builder.Configuration["ApplicationInsights:ConnectionString"],
+        TelemetryConverter.Traces)
     .Enrich.FromLogContext()
     .MinimumLevel.Information()
     .CreateLogger();
 
-//todo: Configurar Application Insights integrador com Serilog
 builder.Host.UseSerilog();
+
+builder.Services.AddApplicationInsightsTelemetry(options =>
+{
+    options.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.WriteIndented = true; // opcional, para formatar bonito
+        options.JsonSerializerOptions.WriteIndented = true; // Optional, for pretty formatting
     });
 builder.Services.AddEndpointsApiExplorer();
 
@@ -42,11 +49,11 @@ builder.Services.AddAutoMapper(assemblies);
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblies(assemblies)
- );
+);
 
-// Configuração do Azure Service Bus
+// Azure Service Bus configuration
 builder.Services.AddSingleton<IServiceBusSenderFactory, ServiceBusSenderFactory>();
-builder.Services.AddSingleton(Log.Logger); 
+builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 
 var app = builder.Build();
@@ -60,4 +67,3 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
-
