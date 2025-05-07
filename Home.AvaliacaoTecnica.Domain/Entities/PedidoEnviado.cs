@@ -1,4 +1,4 @@
-﻿namespace Home.AvaliacaoTecnica.Infra.Data.Entities;
+﻿namespace Home.AvaliacaoTecnica.Domain.Entities;
 public class PedidoEnviado
 {
     public int Id { get; set; } 

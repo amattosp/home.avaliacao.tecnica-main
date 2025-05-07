@@ -1,7 +1,7 @@
 using AutoMapper;
 using Home.AvaliacaoTecnica.Application.Pedido.EnviarPedido;
+using Home.AvaliacaoTecnica.Application.Pedido.ListarPorStatus;
 using Home.AvaliacaoTecnica.Contracts.Contratos;
-using Home.AvaliacaoTecnica.Infra.Data.Entities;
 using Home.AvaliacaoTecnica.Infra.Data.Repositories;
 using Home.AvaliacaoTecnica.WebApi.Features.Pedido.EnviarPedido;
 using MediatR;
@@ -32,12 +32,12 @@ public class PedidoController : ControllerBase
     }
 
     /// <summary>
-    /// Lista pedido por Status
+    /// Lista pedidos por Status
     /// </summary>
     /// <param name="status"></param>
     /// <returns></returns>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<PedidoEnviado>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ListarPedidosResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
     [Consumes("application/json")]
@@ -46,11 +46,16 @@ public class PedidoController : ControllerBase
         if (string.IsNullOrWhiteSpace(status))
             return BadRequest("Status é obrigatório.");
 
-        //todo: refatprar o codigo para levar a logica para a camada de application
-        //todo: a camada de controler nao poder se comunicar com a camada de repositorio, tem que passar pela appication
-
-        var pedidos = await _pedidoRepository.ObterPorStatusAsync(status);
-        return Ok(pedidos);
+        try
+        {
+            var query = new ListarPorStatusQuery(status);
+            var pedidos = await _mediator.Send(query);
+            return Ok(pedidos);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>

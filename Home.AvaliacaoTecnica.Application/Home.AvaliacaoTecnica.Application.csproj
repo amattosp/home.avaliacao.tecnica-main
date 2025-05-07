@@ -7,10 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageReference Include="Serilog" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Home.AvaliacaoTecnica.Domain\Home.AvaliacaoTecnica.Domain.csproj" />
+    <ProjectReference Include="..\Home.AvaliacaoTecnica.Infra.Data\Home.AvaliacaoTecnica.Infra.Data.csproj" />
   </ItemGroup>
 
 </Project>

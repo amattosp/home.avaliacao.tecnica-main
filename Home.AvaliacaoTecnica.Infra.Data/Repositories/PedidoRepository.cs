@@ -1,11 +1,12 @@
-﻿using Home.AvaliacaoTecnica.Infra.Data.Context;
-using Home.AvaliacaoTecnica.Infra.Data.Entities;
+﻿using Home.AvaliacaoTecnica.Domain.Entities;
+using Home.AvaliacaoTecnica.Domain.Interfaces;
+using Home.AvaliacaoTecnica.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 
-        
+
 namespace Home.AvaliacaoTecnica.Infra.Data.Repositories;
 
-public class PedidoRepository
+public class PedidoRepository : IPedidoRepository
 {
     private readonly PedidoDbContext _context;
 

@@ -1,4 +1,4 @@
-﻿using Home.AvaliacaoTecnica.Infra.Data.Entities;
+﻿using Home.AvaliacaoTecnica.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Home.AvaliacaoTecnica.Infra.Data.Context;
