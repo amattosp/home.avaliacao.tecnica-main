@@ -1,5 +1,6 @@
 using AutoMapper;
 using Home.AvaliacaoTecnica.Application.Pedido.EnviarPedido;
+using Home.AvaliacaoTecnica.Application.Pedido.ListarPorId;
 using Home.AvaliacaoTecnica.Application.Pedido.ListarPorStatus;
 using Home.AvaliacaoTecnica.Contracts.Contratos;
 using Home.AvaliacaoTecnica.Infra.Data.Repositories;
@@ -64,41 +65,26 @@ public class PedidoController : ControllerBase
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(PedidoResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PedidoResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
     [Consumes("application/json")]
     public async Task<IActionResult> ObterPorId(int id)
     {
-        //todo: refatprar o codigo para levar a logica para a camada de application
-        //todo: a camada de controler nao poder se comunicar com a camada de dominio, tem que passar pela appication
-        var pedido = await _pedidoRepository.ObterPorIdAsync(id);
-        if (pedido == null)
-            return NotFound(new ProblemDetails
-            {
-                Title = "Pedido não encontrado",
-                Status = 404,
-                Detail = $"Nenhum pedido com o ID {id} foi localizado."
-            });
+        if (id == 0)
+            return BadRequest("Id do Pedido é obrigatório.");
 
-        var response = new PedidoResponseDto
+        try
         {
-            PedidoId = pedido.PedidoId,
-            ClienteId = pedido.ClienteId,
-            Status = pedido.Status,
-            EnviadoEm = pedido.EnviadoEm,
-            Itens = pedido.Itens.Select(i => new PedidoItemResponseDto
-            {
-                ProdutoId = i.ProdutoId,
-                Quantidade = i.Quantidade,
-                Valor = i.Valor
-            }).ToList()
-        };
-
-        return Ok(response);
+            var query = new ListarPedidoPorIdQuery(id);
+            var pedido = await _mediator.Send(query);
+            return Ok(pedido);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-
-    
 
     /// <summary>
     /// Envia informacoes do pedido para servico de gerenciamento de pedidos

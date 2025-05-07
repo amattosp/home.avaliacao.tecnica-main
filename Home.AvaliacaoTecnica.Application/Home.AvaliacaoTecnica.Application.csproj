@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Pedido\ListarPorId\ListarPedidoPorId.Query.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
     <PackageReference Include="MediatR" Version="12.5.0" />
