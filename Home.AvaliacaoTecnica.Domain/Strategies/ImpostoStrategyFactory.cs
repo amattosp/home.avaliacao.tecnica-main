@@ -1,5 +1,4 @@
 ﻿using Home.AvaliacaoTecnica.Domain.Interfaces;
-using Pedido.Processor.Domain.Strategies;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Home.AvaliacaoTecnica.Domain.Strategies

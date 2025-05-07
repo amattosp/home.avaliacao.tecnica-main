@@ -4,7 +4,6 @@ using Home.AvaliacaoTecnica.Domain.Strategies;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
-using Pedido.Processor.Domain.Strategies;
 using Home.AvaliacaoTecnica.Domain.Services;
 
 Host.CreateDefaultBuilder(args)

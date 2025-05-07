@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Home.AvaliacaoTecnica.Contracts\Home.AvaliacaoTecnica.Contracts.csproj" />
-    <ProjectReference Include="..\Home.AvaliacaoTecnica.Domain\Home.AvaliacaoTecnica..Domain.csproj" />
+    <ProjectReference Include="..\Home.AvaliacaoTecnica.Domain\Home.AvaliacaoTecnica.Domain.csproj" />
   </ItemGroup>
 
 </Project>

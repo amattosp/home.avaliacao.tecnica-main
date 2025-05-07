@@ -1,7 +1,7 @@
 ﻿
 using Home.AvaliacaoTecnica.Domain.Interfaces;
 
-namespace Pedido.Processor.Domain.Strategies;
+namespace Home.AvaliacaoTecnica.Domain.Strategies;
 
 public class ImpostoVigenteStrategy : IImpostoStrategy
 {
