@@ -2,7 +2,6 @@ using AutoMapper;
 using Home.AvaliacaoTecnica.Application.Pedido.EnviarPedido;
 using Home.AvaliacaoTecnica.Application.Pedido.ListarPorId;
 using Home.AvaliacaoTecnica.Application.Pedido.ListarPorStatus;
-using Home.AvaliacaoTecnica.Contracts.Contratos;
 using Home.AvaliacaoTecnica.Infra.Data.Repositories;
 using Home.AvaliacaoTecnica.WebApi.Features.Pedido.EnviarPedido;
 using MediatR;
@@ -17,8 +16,6 @@ namespace Home.AvalicaoTecnica.WebApi.Controllers;
 [Route("api/pedidos")]
 public class PedidoController : ControllerBase
 {
-    private readonly PedidoRepository _pedidoRepository;
-
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
 
@@ -27,7 +24,6 @@ public class PedidoController : ControllerBase
                             IMediator mediator,
                             IMapper mapper)
     {
-        _pedidoRepository = pedidoRepository;
         _mediator = mediator;
         _mapper = mapper;
     }

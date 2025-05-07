@@ -29,10 +29,11 @@ public class PedidoRepository : IPedidoRepository
             .ToListAsync();
     }
 
-    public async Task<PedidoEnviado?> ObterPorIdAsync(int id)
+    public async Task<List<PedidoEnviado>> ObterPorIdAsync(int id)
     {
         return await _context.Pedidos
             .Include(p => p.Itens)
-            .FirstOrDefaultAsync(p => p.PedidoId == id);
+            .Where(p => p.PedidoId == id)
+            .ToListAsync();
     }
 }

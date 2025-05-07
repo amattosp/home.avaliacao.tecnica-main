@@ -6,5 +6,5 @@ public interface IPedidoRepository
 {
     Task AdicionarAsync(PedidoEnviado pedido);
     Task<List<PedidoEnviado>> ObterPorStatusAsync(string status);
-    Task<PedidoEnviado?> ObterPorIdAsync(int id);
+    Task<List<PedidoEnviado>> ObterPorIdAsync(int id);
 }

@@ -10,6 +10,11 @@ public class PedidoEnviado
         get; set;
     }
 
+    public PedidoEnviado()
+    {
+        Status = "Criado";
+    }
+
     public required List<PedidoItemEnviado> Itens
     {
         get; set;

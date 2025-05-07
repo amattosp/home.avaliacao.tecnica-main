@@ -1,7 +1,7 @@
-﻿using MediatR;
-using AutoMapper;
+﻿using AutoMapper;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
-using Home.AvaliacaoTecnica.Domain.Entities;
+using MediatR;
+using Serilog;
 
 namespace Home.AvaliacaoTecnica.Application.Pedido.ListarPorId;
 
@@ -9,53 +9,35 @@ public class ListarPedidoPorIdQueryHandler : IRequestHandler<ListarPedidoPorIdQu
 {
     private readonly IPedidoRepository _pedidoRepository;
     private readonly IMapper _mapper;
+    private readonly ILogger _logger;
 
-    public ListarPedidoPorIdQueryHandler(IPedidoRepository pedidoRepository, IMapper mapper)
+    public ListarPedidoPorIdQueryHandler(IPedidoRepository pedidoRepository, IMapper mapper, ILogger logger)
     {
         _pedidoRepository = pedidoRepository;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<PedidoResponse> Handle(ListarPedidoPorIdQuery request, CancellationToken cancellationToken)
     {
-        var pedido = await _pedidoRepository.ObterPorIdAsync(request.PedidoId);
+        var pedidos = await _pedidoRepository.ObterPorIdAsync(request.PedidoId);
 
-        //todo: retirar depois que conseguir gravar no banco de dados
-        pedido = PedidoEnviadoFakeData.GetFakePedido();
-
-        if (pedido == null)
+        // Verificar se há pedidos duplicados com o mesmo ID
+        if (pedidos.Count > 1)
         {
+            _logger.Error("Erro: Mais de um pedido encontrado com o ID {PedidoId}.", request.PedidoId);
+            throw new InvalidOperationException($"Não pode haver pedidos duplicados com o ID {request.PedidoId}.");
+        }
+
+        // Verificar se nenhum pedido foi encontrado
+        if (!pedidos.Any())
+        {
+            _logger.Warning("Aviso: Nenhum pedido encontrado com o ID {PedidoId}.", request.PedidoId);
             throw new KeyNotFoundException($"Pedido com ID {request.PedidoId} não foi encontrado.");
         }
 
-        var pedidoResponse = _mapper.Map<PedidoResponse>(pedido);
+        var pedidoResponse = _mapper.Map<PedidoResponse>(pedidos.First());
 
         return pedidoResponse;
-    }
-}
-
-public static class PedidoEnviadoFakeData
-{
-    public static PedidoEnviado GetFakePedido()
-    {
-        return new PedidoEnviado
-        {
-            Id = 1,
-            PedidoId = 1,
-            ClienteId = 1,
-            Status = "Criado",
-            EnviadoEm = DateTime.UtcNow,
-            Itens = new List<PedidoItemEnviado>
-                {
-                    new PedidoItemEnviado
-                    {
-                        Id = 1,
-                        ProdutoId = 1001,
-                        Quantidade = 2,
-                        Valor = 52.70m,
-                        PedidoEnviadoId = 1
-                    }
-                }
-        };
     }
 }
