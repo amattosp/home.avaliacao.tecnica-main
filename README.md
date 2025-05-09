@@ -91,6 +91,23 @@ Antes de executar a aplicação, é necessário configurar a chave de acesso ao 
  Os tópicos mencionados são utilizados respectivamente pela API, Processador Service e Consumer
 
  ---
+## 🚀 Feature Flags
+O projeto foi desenvolvido para permitir realizar o calculo do imposto vigente ou calculo do imposto da reforma tributaria,
+mediante ativacao da feature flag, conforme detalhado logo abaixo:
+- UsarReformaTributaria : false - calculo do imposto vigente
+- UsarReformaTributaria : true - calculo do imposto regra reforma tributaria
+
+ Esta feature flag deve ser configurada no arquivo appsettings.json no seguinte projeto:
+- **Home.AvaliacaoTecnica.ProcessorService:**:
+
+  "FeatureManagement": {
+      "UsarReformaTributaria": true
+  },
+
+Conforme modelo arquitetural detalhado no diagrama C4 o processador service e responsavel pelo calculo e envio
+do pedido com o imposto calculado para o servico externo B.
+
+  --- 
 
 ### ⚠️ Configuração Opcional: Azure Application insights
 1. Obtenha a connection string válida do Applications Insights.
