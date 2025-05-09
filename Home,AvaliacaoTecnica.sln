@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Home.AvaliacaoTecnica.Domai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Home.AvaliacaoTecnica.Application", "Home.AvaliacaoTecnica.Application\Home.AvaliacaoTecnica.Application.csproj", "{17A65D83-B346-42AE-B9B5-D516039D4547}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTest", "IntegrationTest", "{920F2813-AEF0-44F9-8CEA-3D46C075C19F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Home.AvaliacaoTecnica.Tests.Integrations", "Home.AvaliacaoTecnica.Tests.Integrations\Home.AvaliacaoTecnica.Tests.Integrations.csproj", "{678DDED8-1535-48E2-827F-6975D126B320}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +65,10 @@ Global
 		{17A65D83-B346-42AE-B9B5-D516039D4547}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17A65D83-B346-42AE-B9B5-D516039D4547}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17A65D83-B346-42AE-B9B5-D516039D4547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{678DDED8-1535-48E2-827F-6975D126B320}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{678DDED8-1535-48E2-827F-6975D126B320}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{678DDED8-1535-48E2-827F-6975D126B320}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{678DDED8-1535-48E2-827F-6975D126B320}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +76,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2BA1748F-033C-4843-BCD0-A7F1FE9B166D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F0A1E24C-D983-4393-80F5-B24FDFB6970F} = {2BA1748F-033C-4843-BCD0-A7F1FE9B166D}
+		{920F2813-AEF0-44F9-8CEA-3D46C075C19F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{678DDED8-1535-48E2-827F-6975D126B320} = {920F2813-AEF0-44F9-8CEA-3D46C075C19F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {35E335E2-1D74-4DFD-B202-305C1F94F870}
