@@ -3,7 +3,7 @@ using Home.AvaliacaoTecnica.Domain.Entities;
 
 namespace Home.AvaliacaoTecnica.Tests.Integrations.DataBuilders;
 
-public class PedidoEnviadoDataBuilder
+public class PedidoDataBuilder
 {
     private readonly Faker<PedidoEnviado> _pedidoEnviadoFaker;
     private readonly Faker<PedidoItemEnviado> _pedidoItemEnviadoFaker;
@@ -11,7 +11,7 @@ public class PedidoEnviadoDataBuilder
     private int? _id; 
     private string? _status;
 
-    public PedidoEnviadoDataBuilder()
+    public PedidoDataBuilder()
     {
         _pedidoItemEnviadoFaker = new Faker<PedidoItemEnviado>()
             .RuleFor(i => i.Id, f => f.UniqueIndex + 1)
@@ -28,13 +28,13 @@ public class PedidoEnviadoDataBuilder
             .RuleFor(p => p.Itens, f => _pedidoItemEnviadoFaker.Generate(f.Random.Int(1, 5)));
     }
 
-    public PedidoEnviadoDataBuilder ComPedidoId(int pedidoId)
+    public PedidoDataBuilder ComPedidoId(int pedidoId)
     {
         _pedidoId = pedidoId;
         return this;
     }
 
-    public PedidoEnviadoDataBuilder ComId(int id)
+    public PedidoDataBuilder ComId(int id)
     {
         _id = id; 
         return this;
@@ -57,7 +57,7 @@ public class PedidoEnviadoDataBuilder
         return Enumerable.Range(1, quantidade).Select(_ => Build()).ToList();
     }
 
-    public PedidoEnviadoDataBuilder ComStatus(string status)
+    public PedidoDataBuilder ComStatus(string status)
     {
         _status = status;
         return this;

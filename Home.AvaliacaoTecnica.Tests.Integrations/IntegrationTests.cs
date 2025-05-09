@@ -94,7 +94,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<PedidoDbContext>();
-        var pedidosEnviados = new PedidoEnviadoDataBuilder().ComPedidoId(1).BuildList(1);
+        var pedidosEnviados = new PedidoDataBuilder().ComPedidoId(1).BuildList(1);
         var pedidoEnviado = pedidosEnviados.First();
         context.Pedidos.AddRange(pedidosEnviados);
         await context.SaveChangesAsync();
@@ -107,7 +107,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         var context = scope.ServiceProvider.GetRequiredService<PedidoDbContext>();
 
         var pedidosEnviados = Enumerable.Range(1, count)
-            .Select(id => new PedidoEnviadoDataBuilder()
+            .Select(id => new PedidoDataBuilder()
                 .ComId(id)
                 .ComStatus(status)
                 .Build())
