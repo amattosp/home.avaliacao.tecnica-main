@@ -13,11 +13,11 @@ public class PedidoEnviadoBuilder
         _items = new List<EnviarItemPedidoCommand>();
     }
 
-    public PedidoEnviadoBuilder AddItem(int? productId = null, int? quantidade = null, decimal? valor = null)
+    public PedidoEnviadoBuilder AddItem(int? produtoId = null, int? quantidade = null, decimal? valor = null)
     {
         _items.Add(new EnviarItemPedidoCommand
         {
-            ProductId = productId ?? _faker.Random.Int(1, 100),
+            ProdutoId = produtoId ?? _faker.Random.Int(1, 100),
             Quantidade = quantidade ?? _faker.Random.Int(1, 10),
             Valor = valor ?? _faker.Random.Decimal(1, 100)
         });

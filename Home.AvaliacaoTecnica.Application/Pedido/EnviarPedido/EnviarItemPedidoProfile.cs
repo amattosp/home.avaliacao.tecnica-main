@@ -9,7 +9,7 @@ namespace Home.AvaliacaoTecnica.Domain.Mappers
         public EnviarItemPedidoProfile()
         {
             CreateMap<EnviarItemPedidoCommand, PedidoItemEnviado>()
-                .ForMember(dest => dest.ProdutoId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.ProdutoId, opt => opt.MapFrom(src => src.ProdutoId))
                 .ForMember(dest => dest.Quantidade, opt => opt.MapFrom(src => src.Quantidade))
                 .ForMember(dest => dest.Valor, opt => opt.MapFrom(src => src.Valor))
                 .ForMember(dest => dest.PedidoEnviadoId, opt => opt.Ignore()) 

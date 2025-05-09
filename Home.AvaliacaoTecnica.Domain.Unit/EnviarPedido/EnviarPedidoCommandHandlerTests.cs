@@ -43,20 +43,20 @@ public class EnviarPedidoCommandHandlerTests
         var faker = new Faker();
         var command = new EnviarPedidoCommand(
             pedidoId: faker.Random.Int(1, 1000),
-            clientId: faker.Random.Int(1, 1000),
-            items: new PedidoEnviadoBuilder()
+            clienteId: faker.Random.Int(1, 1000),
+            itens: new PedidoEnviadoBuilder()
                 .AddItems(1) 
                 .Build()
         );
 
         var pedidoEnviado = PedidoEnviadoFactory.CriarDeCommand(
             pedidoId: command.PedidoId,
-            clienteId: command.ClientId,
+            clienteId: command.ClienteId,
             status: "Criado",
             itensCommand: new List<PedidoItemEnviado>()
         );
 
-        _mapperMock.Map<List<PedidoItemEnviado>>(command.Items).Returns(pedidoEnviado.Itens);
+        _mapperMock.Map<List<PedidoItemEnviado>>(command.Itens).Returns(pedidoEnviado.Itens);
         _senderFactoryMock.CreateSender("pedidos").Returns(Substitute.For<ServiceBusSender>());
 
         // Act
@@ -65,7 +65,7 @@ public class EnviarPedidoCommandHandlerTests
         // Assert
         await _pedidoRepositoryMock.Received(1).AdicionarAsync(Arg.Is<PedidoEnviado>(p =>
             p.PedidoId == command.PedidoId &&
-            p.ClienteId == command.ClientId &&
+            p.ClienteId == command.ClienteId &&
             p.Status == "Criado"
         ));
 
@@ -81,8 +81,8 @@ public class EnviarPedidoCommandHandlerTests
         var faker = new Faker();
         var command = new EnviarPedidoCommand(
             pedidoId: faker.Random.Int(1, 1000),
-            clientId: faker.Random.Int(1, 1000),
-            items: new PedidoEnviadoBuilder()
+            clienteId: faker.Random.Int(1, 1000),
+            itens: new PedidoEnviadoBuilder()
                 .AddItems(1)
                 .Build()
             );
@@ -92,13 +92,13 @@ public class EnviarPedidoCommandHandlerTests
             new PedidoItemEnviado
             {
                 Id = faker.Random.Int(1, 1000),
-                ProdutoId = command.Items[0].ProductId,
-                Quantidade = command.Items[0].Quantidade,
-                Valor = command.Items[0].Valor
+                ProdutoId = command.Itens[0].ProdutoId,
+                Quantidade = command.Itens[0].Quantidade,
+                Valor = command.Itens[0].Valor
             }
         };
 
-        _mapperMock.Map<List<PedidoItemEnviado>>(command.Items).Returns(mappedItems);
+        _mapperMock.Map<List<PedidoItemEnviado>>(command.Itens).Returns(mappedItems);
 
         var senderMock = Substitute.For<ServiceBusSender>();
         senderMock.When(x => x.SendMessageAsync(Arg.Any<ServiceBusMessage>()))
@@ -134,8 +134,8 @@ public class EnviarPedidoCommandHandlerTests
         var faker = new Faker();
         var command = new EnviarPedidoCommand(
             pedidoId: faker.Random.Int(1, 1000),
-            clientId: faker.Random.Int(1, 1000),
-            items: new PedidoEnviadoBuilder().AddItems(1).Build()
+            clienteId: faker.Random.Int(1, 1000),
+            itens: new PedidoEnviadoBuilder().AddItems(1).Build()
         );
 
         var mappedItems = new List<PedidoItemEnviado>
@@ -143,13 +143,13 @@ public class EnviarPedidoCommandHandlerTests
             new PedidoItemEnviado
             {
                 Id = faker.Random.Int(1, 1000),
-                ProdutoId = command.Items[0].ProductId,
-                Quantidade = command.Items[0].Quantidade,
-                Valor = command.Items[0].Valor
+                ProdutoId = command.Itens[0].ProdutoId,
+                Quantidade = command.Itens[0].Quantidade,
+                Valor = command.Itens[0].Valor
             }
         };
 
-        _mapperMock.Map<List<PedidoItemEnviado>>(command.Items).Returns(mappedItems);
+        _mapperMock.Map<List<PedidoItemEnviado>>(command.Itens).Returns(mappedItems);
 
         _senderFactoryMock.CreateSender("pedidos").Returns(Substitute.For<ServiceBusSender>());
 
