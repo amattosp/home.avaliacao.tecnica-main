@@ -19,6 +19,7 @@ Este projeto segue os princípios da Clean Architecture, com separação clara d
 - **Home.AvaliacaoTecnica.Contracts:**: DTOs, comandos, eventos e contratos entre camadas.
 - **Home.AvaliacaoTecnica.Domain:**: Lógica de domínio (entidades, regras de negócio).
 - **Home.AvaliacaoTecnica.Domain.Unit:**: Testes unitários da camada de domínio.
+- **Home.AvaliacaoTecnica.Tests.Integrations:**: Testes de integração e2e.
 - **Home.AvaliacaoTecnica.Infra.Data:**: Implementações de repositórios, acesso a dados (EF Core).
 - **Home.AvaliacaoTecnica.ProcessorService:**: Serviço worker para tarefas contínuas ou agendadas.
 - **Home.AvaliacaoTecnica.WebApi:**: API HTTP (ponto de entrada principal).
@@ -40,6 +41,7 @@ Este projeto segue os princípios da Clean Architecture, com separação clara d
 - **Consumer**: Leitura e processamento de mensagens assíncronas.
 - **ProcessorService**: Worker background para tarefas em lote ou programadas.
 - **Domain.Unit**: Testes da camada de domínio, garantindo robustez nas regras de negócio.
+- **Tests.Integrations**: Teste de integração, para validar o comportamento da aplicação em todas as camadas.
 
 
 ## 📦 Estrutura de Branches (Git Flow)
@@ -72,10 +74,42 @@ Antes de executar a aplicação, é necessário configurar a chave de acesso ao 
 "AzureServiceBus": {
   "ConnectionString": "sua-connection-string-aqui"
  }
- 
+
+ A string de conexão do service bus deverá ser inserida nos seguintes projetos:
+ - **Home.AvaliacaoTecnica.WebApi:**
+ - **Home.AvaliacaoTecnica.Consumer:**
+ - **Home.AvaliacaoTecnica.ProcessorService:**
+   
  Sem essa configuração, o projeto não será capaz de se conectar à fila do Azure Service Bus e falhará na inicialização.
  
  ---
+
+ ### ⚠️ Tópicos e Subscriptions usadas neste projeto 
+ - tópico: pedidos - subscription: processador
+ - tópico: pedidos-processados - subscription: sistemaB
+
+ Os tópicos mencionados são utilizados respectivamente pela API, Processador Service e Consumer
+
+ ---
+
+### ⚠️ Configuração Opcional: Azure Application insights
+1. Obtenha a connection string válida do Applications Insights.
+2. No arquivo `appsettings.json` (ou o usado para o ambiente), adicione:
+
+"ApplicationInsights": {
+  "ConnectionString": "sua-connection-string-aqui"
+}
+
+A string de conexão do Applications Insights deverá ser inserida apenas no projeto:
+ - **Home.AvaliacaoTecnica.WebApi:**
+
+Sem essa configuração, os logs serão exibidos na console e registrados em um arquivo de log, mas não será registrado
+no application Insights no Azure.
+
+### Observação
+
+As connections string para o Azure Service Bus e Application Insights serão fornecidas pelo Desenvolvedor.
+
 
 ### Passos para Execução
 
@@ -122,6 +156,7 @@ O projeto foi desenvolvido utilizando as seguintes tecnologias:
 * Entity Framework Core
 * Docker (para containerização)
 * XUnit (para testes automatizados)
+* Test Containers (para testes de integração) 
 
 ---
 
