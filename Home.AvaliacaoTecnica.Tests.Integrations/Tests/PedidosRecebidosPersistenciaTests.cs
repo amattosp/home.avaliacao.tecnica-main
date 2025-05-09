@@ -8,12 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MsSql;
 
-public class IntegrationTests : IAsyncLifetime
+namespace Home.AvaliacaoTecnica.Tests.Integrations.Tests;
+
+public class PedidosRecebidosPersistenciaTests : IAsyncLifetime
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly MsSqlContainer _sqlContainer;
 
-    public IntegrationTests()
+    public PedidosRecebidosPersistenciaTests()
     {
         _factory = new WebApplicationFactory<Program>();
         _sqlContainer = new MsSqlBuilder()

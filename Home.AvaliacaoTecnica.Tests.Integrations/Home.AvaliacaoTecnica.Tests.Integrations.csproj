@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Home.AvaliacaoTecnica.ProcessorService\Home.AvaliacaoTecnica.ProcessorService.csproj" />
     <ProjectReference Include="..\Home.AvaliacaoTecnica.WebApi\Home.AvaliacaoTecnica.WebApi.csproj" />
   </ItemGroup>
 
