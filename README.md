@@ -6,6 +6,42 @@ Este repositório contém a implementação de uma avaliação técnica para uma
 
 ---
 
+## 🏗️ Estrutura da Solução
+
+Este projeto segue os princípios da Clean Architecture, com separação clara de responsabilidades entre as camadas de domínio, aplicação, infraestrutura e interface (API). Abaixo está a estrutura dos diretórios do projeto, acompanhada de uma breve descrição de cada componente:
+
+## 🗂️ Estrutura do Projeto
+
+- **Home,AvaliacaoTecnica.sln**: Arquivo de solução do projeto.
+- **.github/**: Workflows e configurações do GitHub.
+- **Home.AvaliacaoTecnica.Application:**: Camada de aplicação (use cases, serviços de orquestração).
+- **Home.AvaliacaoTecnica.Consumer:**: Serviço que consome mensagens (ex: Azure Service Bus).
+- **Home.AvaliacaoTecnica.Contracts:**: DTOs, comandos, eventos e contratos entre camadas.
+- **Home.AvaliacaoTecnica.Domain:**: Lógica de domínio (entidades, regras de negócio).
+- **Home.AvaliacaoTecnica.Domain.Unit:**: Testes unitários da camada de domínio.
+- **Home.AvaliacaoTecnica.Infra.Data:**: Implementações de repositórios, acesso a dados (EF Core).
+- **Home.AvaliacaoTecnica.ProcessorService:**: Serviço worker para tarefas contínuas ou agendadas.
+- **Home.AvaliacaoTecnica.WebApi:**: API HTTP (ponto de entrada principal).
+- **bin:**: Arquivos compilados.
+- **obj:**: Arquivos intermediários de build.
+- **.dockerignore**: Arquivos ignorados durante o build Docker.
+- **.gitattributes / .gitignore**: Arquivos de configuração do Git.
+- **README.md**: Instruções do projeto.
+
+---
+
+### 🧾 Descrição das Camadas
+
+- **WebApi**: Ponto de entrada da aplicação via HTTP.
+- **Application**: Contém a lógica de orquestração entre as camadas.
+- **Domain**: Regras de negócio puras e entidades.
+- **Infra.Data**: Persistência e implementação de repositórios.
+- **Contracts**: Objetos de troca de dados entre camadas.
+- **Consumer**: Leitura e processamento de mensagens assíncronas.
+- **ProcessorService**: Worker background para tarefas em lote ou programadas.
+- **Domain.Unit**: Testes da camada de domínio, garantindo robustez nas regras de negócio.
+
+
 ## 📦 Estrutura de Branches (Git Flow)
 
 O projeto segue a estrutura de branches do Git Flow:
@@ -31,7 +67,7 @@ Certifique-se de ter as seguintes ferramentas instaladas:
 Antes de executar a aplicação, é necessário configurar a chave de acesso ao Azure Service Bus.
 
 1. Obtenha a connection string válida do Azure Service Bus.
-2. No arquivo `appsettings.Development.json` (ou o usado para o ambiente), adicione:
+2. No arquivo `appsettings.json` (ou o usado para o ambiente), adicione:
 
 "AzureServiceBus": {
   "ConnectionString": "sua-connection-string-aqui"
