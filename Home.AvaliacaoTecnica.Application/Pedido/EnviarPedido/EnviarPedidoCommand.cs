@@ -7,14 +7,14 @@ public class EnviarPedidoCommand : IRequest<EnviarPedidoResult>
 
     public EnviarPedidoCommand() {}
 
-    public EnviarPedidoCommand(int pedidoId, int clientId, List<EnviarItemPedidoCommand> items)
+    public EnviarPedidoCommand(int pedidoId, int clienteId, List<EnviarItemPedidoCommand> itens)
     {
         PedidoId = pedidoId;
-        ClientId = clientId;
-        Items = items;
+        ClienteId = clienteId;
+        Itens = itens;
     }
 
     public int PedidoId { get; set; }
-    public int ClientId { get; set; }
-    public List<EnviarItemPedidoCommand> Items { get; set; } = [];
+    public int ClienteId { get; set; }
+    public List<EnviarItemPedidoCommand> Itens { get; set; } = [];
 }

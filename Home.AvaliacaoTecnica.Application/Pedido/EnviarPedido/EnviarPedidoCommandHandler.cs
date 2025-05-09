@@ -36,10 +36,10 @@ public class EnviarPedidoCommandHandler : IRequestHandler<EnviarPedidoCommand, E
 
             var json = JsonSerializer.Serialize(request);
 
-            var itens = _mapper.Map<List<PedidoItemEnviado>>(request.Items);
+            var itens = _mapper.Map<List<PedidoItemEnviado>>(request.Itens);
             var pedidoEnviado = PedidoEnviadoFactory.CriarDeCommand(
                 pedidoId: request.PedidoId,
-                clienteId: request.ClientId,
+                clienteId: request.ClienteId,
                 status: "Criado",
                 itensCommand: itens
             );
