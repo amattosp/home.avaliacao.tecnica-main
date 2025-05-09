@@ -8,11 +8,29 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MsSql;
 
-public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class IntegrationTests : IAsyncLifetime
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly MsSqlContainer _sqlContainer;
-    
+
+    public IntegrationTests()
+    {
+        _factory = new WebApplicationFactory<Program>();
+        _sqlContainer = new MsSqlBuilder()
+            .WithPassword("yourStrong(!)Password")
+            .Build();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _sqlContainer.StartAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _sqlContainer.DisposeAsync();
+    }
+
     private async Task ResetDatabase()
     {
         using var scope = _factory.Services.CreateScope();
@@ -22,24 +40,12 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         await context.SaveChangesAsync();
     }
 
-    public IntegrationTests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory;
-        _sqlContainer = new MsSqlBuilder()
-            .WithPassword("yourStrong(!)Password")
-            .Build();
-
-        _sqlContainer.StartAsync().Wait();
-
-        
-    }
-
     [Trait("Category", "Integration")]
     [Fact]
     public async Task Pedido_QuandoConsultarPedidoPeloId_DeveRetornarUmPedidoUnicoComItens()
     {
         // Arrange
-        await ResetDatabase(); 
+        await ResetDatabase();
         var client = CreateHttpClient();
         var pedidoEnviado = await SeedDatabaseWithSinglePedido();
 
@@ -64,6 +70,7 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Pedido_QuandoConsultarPedidosPeloStatus_DeveRetornarListaDePedidosComItens()
     {
         // Arrange
+        await ResetDatabase();
         var client = CreateHttpClient();
         var pedidosEnviados = await SeedDatabaseWithPedidosByStatus("Criado", 2);
 
@@ -117,7 +124,6 @@ public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
         await context.SaveChangesAsync();
         return pedidosEnviados;
     }
-
 
     private async Task<T> DeserializeResponse<T>(HttpResponseMessage response)
     {
