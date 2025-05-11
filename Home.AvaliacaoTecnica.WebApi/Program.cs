@@ -3,6 +3,7 @@ using Home.AvaliacaoTecnica.Application.Services;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
 using Home.AvaliacaoTecnica.Infra.Data.Context;
 using Home.AvaliacaoTecnica.Infra.Data.Repositories;
+using Home.AvaliacaoTecnica.WebApi.MessagingServices;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Reflection;
@@ -56,7 +57,24 @@ builder.Services.AddSingleton<IServiceBusSenderFactory, ServiceBusSenderFactory>
 builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 
+//DI temporaria, depois sera substituida pela implementacao final
+builder.Services.AddSingleton<TopicSender>();
+builder.Services.AddSingleton<TopicProcessor>();
+
 var app = builder.Build();
+
+//.todo: remover depois -  usado apenas para validar o comportamento de consumo da API pela POC
+app.MapPost("/api/send/topic", async (TopicSender sender) =>
+{
+    await sender.SendMessageAsync();
+    return Results.Ok();
+});
+
+app.MapPost("/api/process/topic", async (TopicProcessor processor) =>
+{
+    await processor.ProcessMessageAsync();
+    return Results.Ok();
+});
 
 if (app.Environment.IsDevelopment())
 {

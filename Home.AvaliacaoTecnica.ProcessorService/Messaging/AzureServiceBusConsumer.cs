@@ -20,17 +20,19 @@ public class AzureServiceBusConsumer : IServiceBusConsumer
     private ServiceBusClient _client;
     private ServiceBusProcessor _processor;
     private readonly ILogger<AzureServiceBusConsumer> _logger;
-    private readonly IConfiguration _configuration;
+    private readonly string _connectionString;
     private readonly IPedidoService _pedidoService;
+    private readonly string _topicName = "pedidos";
+    private readonly string _subscriptionName = "processador";
 
     public AzureServiceBusConsumer(
         ILogger<AzureServiceBusConsumer> logger,
-        IConfiguration configuration,
+        string connectionString,
         IImpostoStrategy impostoStrategy,
         IPedidoService pedidoService)
     {
         _logger = logger;
-        _configuration = configuration;
+        _connectionString = connectionString;
         _pedidoService = pedidoService;
     }
 
@@ -38,9 +40,8 @@ public class AzureServiceBusConsumer : IServiceBusConsumer
     {
         try
         {
-            var connectionString = _configuration.GetConnectionString("ServiceBus");
-            _client = new ServiceBusClient(connectionString);
-            _processor = _client.CreateProcessor("pedidos", "processador", new ServiceBusProcessorOptions());
+            _client = new ServiceBusClient(_connectionString);
+            _processor = _client.CreateProcessor(_topicName, _subscriptionName, new ServiceBusProcessorOptions());
 
             _processor.ProcessMessageAsync += async args =>
             {
