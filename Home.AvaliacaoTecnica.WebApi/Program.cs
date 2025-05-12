@@ -1,4 +1,6 @@
+using Azure.Messaging.ServiceBus;
 using Home.AvaliacaoTecnica.Application;
+using Home.AvaliacaoTecnica.Application.Config;
 using Home.AvaliacaoTecnica.Application.Services;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
 using Home.AvaliacaoTecnica.Infra.Data.Context;
@@ -52,8 +54,20 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblies(assemblies)
 );
 
-// Azure Service Bus configuration
+// Azure Service Bus configuration usando Factory pattern
 builder.Services.AddSingleton<IServiceBusSenderFactory, ServiceBusSenderFactory>();
+
+//Configuracai do Azure Service Bus
+builder.Services.AddAzureServiceBusConfiguration(
+    sbBuilder => sbBuilder
+                        .AddSender(
+                            "TopicSender",
+                            "pedidos")
+                        .AddProcessor(
+                            "TopicProcessor",
+                            "pedidos",
+                            "processado"));
+
 builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 

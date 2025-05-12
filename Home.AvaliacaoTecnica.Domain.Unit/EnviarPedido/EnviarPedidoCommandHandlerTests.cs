@@ -8,6 +8,7 @@ using Home.AvaliacaoTecnica.Domain.Entities;
 using Home.AvaliacaoTecnica.Domain.Factory;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
 using Home.AvaliacaoTecnica.Domain.Unit.Builders;
+using Microsoft.Extensions.Azure;
 using NSubstitute;
 using Serilog;
 
@@ -16,6 +17,7 @@ namespace Home.AvaliacaoTecnica.Domain.Unit.EnviarPedido;
 public class EnviarPedidoCommandHandlerTests
 {
     private readonly IServiceBusSenderFactory _senderFactoryMock;
+    private readonly IAzureClientFactory<ServiceBusSender> _serviceBusFactory;
     private readonly ILogger _loggerMock;
     private readonly IPedidoRepository _pedidoRepositoryMock;
     private readonly IMapper _mapperMock;
@@ -24,12 +26,14 @@ public class EnviarPedidoCommandHandlerTests
     public EnviarPedidoCommandHandlerTests()
     {
         _senderFactoryMock = Substitute.For<IServiceBusSenderFactory>();
+        _serviceBusFactory = Substitute.For<IAzureClientFactory<ServiceBusSender>>();
         _loggerMock = Substitute.For<ILogger>();
         _pedidoRepositoryMock = Substitute.For<IPedidoRepository>();
         _mapperMock = Substitute.For<IMapper>();
 
         _handler = new EnviarPedidoCommandHandler(
             _senderFactoryMock,
+            _serviceBusFactory,
             _loggerMock,
             _pedidoRepositoryMock,
             _mapperMock
@@ -85,26 +89,27 @@ public class EnviarPedidoCommandHandlerTests
             itens: new PedidoEnviadoBuilder()
                 .AddItems(1)
                 .Build()
-            );
+        );
 
         var mappedItems = new List<PedidoItemEnviado>
+    {
+        new PedidoItemEnviado
         {
-            new PedidoItemEnviado
-            {
-                Id = faker.Random.Int(1, 1000),
-                ProdutoId = command.Itens[0].ProdutoId,
-                Quantidade = command.Itens[0].Quantidade,
-                Valor = command.Itens[0].Valor
-            }
-        };
+            Id = faker.Random.Int(1, 1000),
+            ProdutoId = command.Itens[0].ProdutoId,
+            Quantidade = command.Itens[0].Quantidade,
+            Valor = command.Itens[0].Valor
+        }
+    };
 
         _mapperMock.Map<List<PedidoItemEnviado>>(command.Itens).Returns(mappedItems);
+
 
         var senderMock = Substitute.For<ServiceBusSender>();
         senderMock.When(x => x.SendMessageAsync(Arg.Any<ServiceBusMessage>()))
                   .Do(x => throw new Exception("Service Bus Error"));
 
-        _senderFactoryMock.CreateSender("pedidos").Returns(senderMock);
+        _serviceBusFactory.CreateClient("TopicSender").Returns(senderMock);
 
         // Act
         Func<Task> act = async () => await _handler.Handle(command, CancellationToken.None);
@@ -113,6 +118,7 @@ public class EnviarPedidoCommandHandlerTests
         await act.Should().ThrowAsync<Exception>().WithMessage("Service Bus Error");
         _loggerMock.Received(1).Error(Arg.Any<Exception>(), "Erro ao enviar o pedido {Id} para o tópico", command.PedidoId);
     }
+
 
     [Fact]
     public async Task Handle_Should_ThrowException_When_CommandIsInvalid()

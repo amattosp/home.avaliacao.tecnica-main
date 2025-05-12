@@ -1,5 +1,8 @@
-﻿using Azure.Messaging.ServiceBus;
+﻿using Azure.Messaging;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Text.Json;
 using Testcontainers.ServiceBus;
 using Testing.AzureServiceBus.Logging;
 using Xunit.Abstractions;
@@ -85,36 +88,54 @@ public class ServiceBusResource : IAsyncDisposable
         string? subscriptionName,
         int maxWaitTimeInSeconds = 5)
     {
-        await using ServiceBusClient client = new(ServiceBusConstants.ConnectionString);
-
-        ServiceBusReceiverOptions opt = new()
+        try
         {
-            ReceiveMode = ServiceBusReceiveMode.PeekLock,
+            await using ServiceBusClient client = new(ServiceBusConstants.ConnectionString);
+
+            ServiceBusReceiverOptions opt = new()
+            {
+                ReceiveMode = ServiceBusReceiveMode.PeekLock,
+            };
+
+            await using ServiceBusReceiver? receiver = !string.IsNullOrWhiteSpace(subscriptionName)
+                ? client.CreateReceiver(
+                    queueOrTopicName,
+                    subscriptionName,
+                    opt)
+                : client.CreateReceiver(
+                    queueOrTopicName,
+                    opt);
+
+            ServiceBusReceivedMessage message =
+                await receiver.ReceiveMessageAsync(TimeSpan.FromSeconds(maxWaitTimeInSeconds));
+            if (message != null)
+            {
+                _logger?.LogInformation(
+                    "Message received from {QueueOrTopicName}.",
+                    queueOrTopicName);
+
+                await receiver.CompleteMessageAsync(message);
+                return message.Body.ToObjectFromJson<TMessage>();
+            }
+
+            _logger?.LogWarning("No message found to consume.");
+            return default;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error consuming message: {ex.Message}");
+            throw;
+        }
+    }
+
+    private static TMessage ConverterCloudEvent<TMessage>(string content)
+    {
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
         };
 
-        await using ServiceBusReceiver? receiver = !string.IsNullOrWhiteSpace(subscriptionName)
-            ? client.CreateReceiver(
-                queueOrTopicName,
-                subscriptionName,
-                opt)
-            : client.CreateReceiver(
-                queueOrTopicName,
-                opt);
-
-        ServiceBusReceivedMessage message =
-            await receiver.ReceiveMessageAsync(TimeSpan.FromSeconds(maxWaitTimeInSeconds));
-        if (message != null)
-        {
-            _logger?.LogInformation(
-                "Message received from {QueueOrTopicName}.",
-                queueOrTopicName);
-
-            await receiver.CompleteMessageAsync(message);
-            return message.Body.ToObjectFromJson<TMessage>();
-        }
-
-        _logger?.LogWarning("No message found to consume.");
-        return default;
+        return JsonSerializer.Deserialize<TMessage>(content, options)!;
     }
 
     public async ValueTask DisposeAsync()

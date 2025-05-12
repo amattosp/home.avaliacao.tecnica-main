@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Home.AvaliacaoTecnica.ProcessorService\Home.AvaliacaoTecnica.ProcessorService.csproj" />
     <ProjectReference Include="..\Home.AvaliacaoTecnica.WebApi\Home.AvaliacaoTecnica.WebApi.csproj" />
+    <ProjectReference Include="..\Testing.AzureServiceBus\Testing.AzureServiceBus.csproj" />
   </ItemGroup>
 
   <ItemGroup>
