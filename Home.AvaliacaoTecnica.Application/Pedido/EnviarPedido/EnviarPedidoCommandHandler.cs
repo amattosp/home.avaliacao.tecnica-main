@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Azure.Messaging.ServiceBus;
-using Home.AvaliacaoTecnica.Application.Services;
+using Home.AvaliacaoTecnica.Application.Services.Wrapper;
 using Home.AvaliacaoTecnica.Domain.Entities;
 using Home.AvaliacaoTecnica.Domain.Factory;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
 using MediatR;
-using Microsoft.Extensions.Azure;
 using Serilog;
 using System.Text.Json;
 
@@ -13,24 +12,23 @@ namespace Home.AvaliacaoTecnica.Application.Pedido.EnviarPedido;
 
 public class EnviarPedidoCommandHandler : IRequestHandler<EnviarPedidoCommand, EnviarPedidoResult>
 {
+    private const string SenderName = "TopicSender";
     private readonly ILogger _logger;
     private readonly IPedidoRepository _pedidoRepository;
     private readonly IMapper _mapper;
-    private readonly ServiceBusSender _messageSender;
+    private readonly IServiceBusSenderWrapper _messageSender;
 
-    public EnviarPedidoCommandHandler(IServiceBusSenderFactory senderFactory,
-                                      IAzureClientFactory<ServiceBusSender> serviceBusFactory,
+    public EnviarPedidoCommandHandler(IServiceBusSenderWrapper messageSender,
                                       ILogger logger,
                                       IPedidoRepository pedidoRepository,
                                       IMapper mapper)
     {
-        ArgumentNullException.ThrowIfNull(serviceBusFactory);
-
         _logger = logger;
         _pedidoRepository = pedidoRepository;
         _mapper = mapper;
 
-        _messageSender = serviceBusFactory.CreateClient("TopicSender");
+        messageSender.ConfigureSender(SenderName);
+        _messageSender = messageSender;
     }
 
     public async Task<EnviarPedidoResult> Handle(EnviarPedidoCommand request, CancellationToken cancellationToken)

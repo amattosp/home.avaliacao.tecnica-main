@@ -1,5 +1,7 @@
-﻿using Home.AvaliacaoTecnica.Tests.Integrations.Factory;
+﻿using FluentAssertions;
+using Home.AvaliacaoTecnica.Tests.Integrations.Factory;
 using Home.AvaliacaoTecnica.WebApi;
+using Home.AvaliacaoTecnica.WebApi.Features.Pedido.EnviarPedido;
 using Pedido.Contracts.Contratos;
 using System.Text.Json;
 using Testing.AzureServiceBus;
@@ -9,6 +11,7 @@ using ServiceBusConfiguration = Testing.AzureServiceBus.Configuration.ServiceBus
 
 namespace Home.AvaliacaoTecnica.Tests.Integrations.Tests
 {
+    [Trait("Test", "IntegrationTest")]
     public class PedidoBackgroundServiceIntegrationTests : IClassFixture<CustomWebApplicationFactory<IApiAssemblyMarker>>, IClassFixture<ServiceBusResource>
     {
         private readonly ServiceBusResource _serviceBusResource;
@@ -31,69 +34,71 @@ namespace Home.AvaliacaoTecnica.Tests.Integrations.Tests
             _serviceBusResource = serviceBusResource;
         }
 
+        /// <summary>
+        /// Testa e2e do envio de um pedido para o tópico e a leitura desse pedido pelo background service.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task ShouldProcessMessageFromTopic()
         {
-            try
-            {
-                // Arrange
-                PedidoEnviadoRequest pedidoEnviadoRequest = CriarPedidoEnviado();
-                string pedidoJson = JsonSerializer.Serialize(pedidoEnviadoRequest);
 
-                HttpClient httpClient = _webApplicationFactory.CreateClient();
-                StringContent content = new StringContent(pedidoJson, System.Text.Encoding.UTF8, "application/json");
+            // Arrange
+            EnviarPedidoRequest pedidoEnviadoRequest = CriarPedidoEnviado();
+            string pedidoJson = JsonSerializer.Serialize(pedidoEnviadoRequest);
 
-                // Act
-                // envio pedido para o topico
-                HttpResponseMessage responseMessage = await httpClient.PostAsync("api/pedidos", content);
+            HttpClient httpClient = _webApplicationFactory.CreateClient();
+            StringContent content = new StringContent(pedidoJson, System.Text.Encoding.UTF8, "application/json");
 
-                // Assert
-                responseMessage.EnsureSuccessStatusCode();
-                Assert.NotNull(responseMessage);
+            // Act
+            // envio pedido para o topico
+            HttpResponseMessage responseMessage = await httpClient.PostAsync("api/pedidos", content);
 
-                // Captura o pedido recebido do topico
-                var pedidoRecebido = await _serviceBusResource.ConsumeMessageAsync<PedidoRequestDto>(
-                    topicName: topico,
-                    subscriptionName: subScription);
+            // Assert
+            responseMessage.Should().NotBeNull();
+            responseMessage.IsSuccessStatusCode.Should().BeTrue();
 
-                // Assert
-                Assert.NotNull(pedidoRecebido);
-                AssertPedidos(pedidoEnviadoRequest, pedidoRecebido);
+            // Captura o pedido recebido do topico
+            var pedidoRecebido = await _serviceBusResource.ConsumeMessageAsync<PedidoRequestDto>(
+                topicName: topico,
+                subscriptionName: subScription);
 
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro ao conectar ao Service Bus: {ex.Message}");
-            }
+            // Assert
+            pedidoRecebido.Should().NotBeNull();
+            AssertPedidos(pedidoEnviadoRequest, pedidoRecebido!);
         }
 
-        private static void AssertPedidos(PedidoEnviadoRequest pedidoEnviadoRequest, PedidoRequestDto pedidoRecebido)
+        private static void AssertPedidos(EnviarPedidoRequest pedidoEnviadoRequest, PedidoRequestDto pedidoRecebido)
         {
-            Assert.Equal(pedidoEnviadoRequest.PedidoId, pedidoRecebido.PedidoId);
-            Assert.Equal(pedidoEnviadoRequest.ClienteId, pedidoRecebido.ClienteId);
-            Assert.NotNull(pedidoRecebido.Itens);
-            Assert.Equal(pedidoEnviadoRequest.Itens.Count, pedidoRecebido.Itens.Count);
+            pedidoRecebido.PedidoId.Should().Be(pedidoEnviadoRequest.PedidoId);
+            pedidoRecebido.ClienteId.Should().Be(pedidoEnviadoRequest.ClienteId);
+            pedidoRecebido.Itens.Should().NotBeNull();
+            pedidoRecebido.Itens.Should().HaveCount(pedidoEnviadoRequest.Itens.Count);
+            AssertItensPedido(pedidoEnviadoRequest, pedidoRecebido);
+        }
+
+        private static void AssertItensPedido(EnviarPedidoRequest pedidoEnviadoRequest, PedidoRequestDto pedidoRecebido)
+        {
             for (int i = 0; i < pedidoEnviadoRequest.Itens.Count; i++)
             {
                 var expectedItem = pedidoEnviadoRequest.Itens[i];
                 var actualItem = pedidoRecebido.Itens[i];
 
-                Assert.NotNull(actualItem);
-                Assert.Equal(expectedItem.ProdutoId, actualItem.ProdutoId);
-                Assert.Equal(expectedItem.Quantidade, actualItem.Quantidade);
-                Assert.Equal(expectedItem.Valor, actualItem.Valor);
+                actualItem.Should().NotBeNull();
+                actualItem.ProdutoId.Should().Be(expectedItem.ProdutoId);
+                actualItem.Quantidade.Should().Be(expectedItem.Quantidade);
+                actualItem.Valor.Should().Be(expectedItem.Valor);
             }
         }
 
-        private static PedidoEnviadoRequest CriarPedidoEnviado()
+        private static EnviarPedidoRequest CriarPedidoEnviado()
         {
-            return new PedidoEnviadoRequest
+            return new EnviarPedidoRequest
             {
                 PedidoId = 1,
                 ClienteId = 1,
-                Itens = new List<ItemPedido>
+                Itens = new List<EnviarItemPedidoRequest>
                 {
-                    new ItemPedido
+                    new EnviarItemPedidoRequest
                     {
                         ProdutoId = 1001,
                         Quantidade = 2,
@@ -114,20 +119,5 @@ namespace Home.AvaliacaoTecnica.Tests.Integrations.Tests
                                 .AddSubscription(
                                     "processador")))
                 .Build();
-    }
-
-    //todo: classe utilizadas apenas para teste, depois podem ser substituidas pela classe original do projeto da API
-    public class PedidoEnviadoRequest
-    {
-        public int PedidoId { get; set; }
-        public int ClienteId { get; set; }
-        public List<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
-    }
-
-    public class ItemPedido
-    {
-        public int ProdutoId { get; set; }
-        public int Quantidade { get; set; }
-        public decimal Valor { get; set; }
     }
 }
