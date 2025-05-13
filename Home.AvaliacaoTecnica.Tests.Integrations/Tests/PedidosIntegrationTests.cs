@@ -10,12 +10,12 @@ using Testcontainers.MsSql;
 
 namespace Home.AvaliacaoTecnica.Tests.Integrations.Tests;
 
-public class PedidosRecebidosPersistenciaTests : IAsyncLifetime
+public class PedidosIntegrationTests : IAsyncLifetime
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly MsSqlContainer _sqlContainer;
 
-    public PedidosRecebidosPersistenciaTests()
+    public PedidosIntegrationTests()
     {
         _factory = new WebApplicationFactory<Program>();
         _sqlContainer = new MsSqlBuilder()
