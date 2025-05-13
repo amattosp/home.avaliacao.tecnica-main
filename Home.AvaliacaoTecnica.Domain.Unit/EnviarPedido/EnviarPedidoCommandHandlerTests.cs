@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus;
 using Bogus;
 using FluentAssertions;
 using Home.AvaliacaoTecnica.Application.Pedido.EnviarPedido;
+using Home.AvaliacaoTecnica.Application.Services.Wrapper;
 using Home.AvaliacaoTecnica.Domain.Entities;
 using Home.AvaliacaoTecnica.Domain.Factory;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
@@ -14,6 +15,7 @@ namespace Home.AvaliacaoTecnica.Domain.Unit.EnviarPedido;
 
 public class EnviarPedidoCommandHandlerTests
 {
+    private const string TopicSender = "TopicSender";
     private readonly IServiceBusSenderWrapper _messageSender;
     private readonly ILogger _loggerMock;
     private readonly IPedidoRepository _pedidoRepositoryMock;
@@ -56,9 +58,7 @@ public class EnviarPedidoCommandHandlerTests
         );
 
         _mapperMock.Map<List<PedidoItemEnviado>>(command.Itens).Returns(pedidoEnviado.Itens);
-
-        // Simula a configuração do sender para o tópico "pedidos"
-        _messageSender.ConfigureSender("TopicSender");
+        _messageSender.ConfigureSender(TopicSender);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -105,9 +105,7 @@ public class EnviarPedidoCommandHandlerTests
     };
 
         _mapperMock.Map<List<PedidoItemEnviado>>(command.Itens).Returns(mappedItems);
-
-        // Simula a configuração do sender para o tópico "pedidos"
-        _messageSender.ConfigureSender("TopicSender");
+        _messageSender.ConfigureSender(TopicSender);
 
         // Simula uma falha ao enviar a mensagem
         _messageSender.When(x => x.SendMessageAsync(Arg.Any<ServiceBusMessage>(), Arg.Any<CancellationToken>()))
