@@ -3,4 +3,6 @@
 public interface IPedidoService
 {
     decimal CalcularImposto(Entities.Pedido pedido);
+
+    string GetImpostoStrategyName();
 }

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
+using System.Diagnostics;
 using System.Text.Json;
 using Testing.AzureServiceBus;
 using Testing.AzureServiceBus.Builder;
@@ -52,7 +53,6 @@ public class PedidoServiceImpostoIntegrationTests : IClassFixture<CustomWebAppli
         _webApplicationFactory = webApplicationFactory;
         _factory = factory;
         _serviceBusResource = serviceBusResource;
-
     }
 
     private static ServiceBusConfiguration ServiceBusConfig()
@@ -72,11 +72,24 @@ public class PedidoServiceImpostoIntegrationTests : IClassFixture<CustomWebAppli
          .Build();
 
 
-    [Theory(Skip = "Desabilitado temporariamente pois estamos corrigindo o assert da regra de calculo")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Deve_Calcular_Imposto_Conforme_FeatureFlag_ReformaTributaria(bool usarReformaTributaria)
+
+    [Trait("Category", "IntegrationTest")]
+    [Fact(DisplayName = "Deve calcular imposto com a feature flag 'UsarReformaTributaria' DESABILITADA")]
+    public async Task Deve_Calcular_Imposto_Com_FeatureFlag_ReformaTributaria_Desabilitada()
     {
+        await ExecutarCenarioFeatureFlag(false, 15.81m);
+    }
+
+    [Trait("Category", "IntegrationTest")]
+    [Fact(DisplayName = "Deve calcular imposto com a feature flag 'UsarReformaTributaria' HABILITADA")]
+    public async Task Deve_Calcular_Imposto_Com_FeatureFlag_ReformaTributaria_Habilitada()
+    {
+        await ExecutarCenarioFeatureFlag(true, 10.54m);
+    }
+
+    private async Task ExecutarCenarioFeatureFlag(bool usarReformaTributaria, decimal valorEsperado)
+    {
+
         // Arrange
         var pedidoRequest = new EnviarPedidoRequest
         {
@@ -97,15 +110,37 @@ public class PedidoServiceImpostoIntegrationTests : IClassFixture<CustomWebAppli
         HttpClient httpClient = _webApplicationFactory.CreateClient();
         StringContent content = new StringContent(pedidoJson, System.Text.Encoding.UTF8, "application/json");
 
-        // Envio do pedido para o tópico
+
+        // Configuração do Service Bus
+        var serviceBusConnectionString =
+            "Endpoint=sb://127.0.0.1;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
+
+        // Configuração do Host BackGroundService
+        Debug.WriteLine($"Configurando o host para o Service Bus: {serviceBusConnectionString}");
+        using Microsoft.Extensions.Hosting.IHost host = ConfigurarHost(usarReformaTributaria, serviceBusConnectionString);
+
+        Debug.WriteLine($"Vou enviar um pedido: {pedidoJson}");
         HttpResponseMessage responseMessage = await httpClient.PostAsync("api/pedidos", content);
         responseMessage.Should().NotBeNull();
         responseMessage.IsSuccessStatusCode.Should().BeTrue();
 
-        var serviceBusConnectionString =
-            "Endpoint=sb://127.0.0.1;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
+        await host.StartAsync();
+        Task.Delay(2500).Wait();
+        await host.StopAsync();
+        
+        var resultado = await _serviceBusResource.ConsumeMessageAsync<PedidoProcessadoDto>(
+            "pedidos-processados", "sistemaB", 10);
 
-        using var host = _factory.CreateHost(services =>
+        Debug.WriteLine($"Resultado: {resultado}");
+        resultado.Should().NotBeNull();
+
+        // Assert
+        resultado!.Imposto.Should().Be(valorEsperado);
+    }
+
+    private Microsoft.Extensions.Hosting.IHost ConfigurarHost(bool usarReformaTributaria, string serviceBusConnectionString)
+    {
+        return _factory.CreateHost(services =>
         {
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
@@ -116,10 +151,10 @@ public class PedidoServiceImpostoIntegrationTests : IClassFixture<CustomWebAppli
                 .Build();
 
             services.AddFeatureManagement();
-            services.AddSingleton<ImpostoReformaTributariaStrategy>();
-            services.AddSingleton<ImpostoVigenteStrategy>();
-            services.AddSingleton<ImpostoStrategyFactory>();
-            services.AddSingleton<IImpostoStrategy>(provider =>
+            services.AddTransient<ImpostoReformaTributariaStrategy>();
+            services.AddTransient<ImpostoVigenteStrategy>();
+            services.AddTransient<ImpostoStrategyFactory>();
+            services.AddTransient<IImpostoStrategy>(provider =>
             {
                 var featureManager = provider.GetRequiredService<IFeatureManager>();
                 var factory = provider.GetRequiredService<ImpostoStrategyFactory>();
@@ -127,10 +162,10 @@ public class PedidoServiceImpostoIntegrationTests : IClassFixture<CustomWebAppli
                 return factory.GetStrategy(flag);
             });
             services.AddSingleton<IConfiguration>(configuration);
-            services.AddSingleton<IServiceBusConsumer, AzureServiceBusConsumer>();
-            services.AddSingleton<IPedidoService, PedidoService>();
+            services.AddTransient<IServiceBusConsumer, AzureServiceBusConsumer>();
+            services.AddTransient<IPedidoService, PedidoService>();
             services.AddSingleton<PedidoBackgroundService>();
-            services.AddSingleton<IServiceBusConsumer>(sp =>
+            services.AddTransient<IServiceBusConsumer>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<AzureServiceBusConsumer>>();
                 var connectionString = configuration.GetConnectionString("ServiceBus");
@@ -139,18 +174,5 @@ public class PedidoServiceImpostoIntegrationTests : IClassFixture<CustomWebAppli
                 return new AzureServiceBusConsumer(logger, connectionString, impostoStrategy, pedidoService);
             });
         });
-
-        await host.StartAsync();
-        await Task.Delay(2500);
-        await host.StopAsync();
-
-
-        // Recebe o pedido que foi calculo o imposto no processor service do topico pedidos-processados
-        var resultado = await _serviceBusResource.ConsumeMessageAsync<PedidoProcessadoDto>(
-          "pedidos-processados", "sistemaB", 5);
-
-        // Assert
-        decimal valorEsperado = usarReformaTributaria ? 10.54m : 15.81m;
-        resultado!.Imposto.Should().Be(valorEsperado);
     }
 }

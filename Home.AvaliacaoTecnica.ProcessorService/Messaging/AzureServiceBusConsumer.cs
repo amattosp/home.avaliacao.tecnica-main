@@ -1,5 +1,4 @@
 ﻿using Azure.Messaging.ServiceBus;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,15 +14,17 @@ using System.Collections.Generic;
 
 namespace Home.AvaliacaoTecnica.ProcessorService.Messaging;
 
-public class AzureServiceBusConsumer : IServiceBusConsumer
+public class AzureServiceBusConsumer : IServiceBusConsumer, IAsyncDisposable
 {
     private ServiceBusClient _client;
     private ServiceBusProcessor _processor;
+    private ServiceBusSender _sender;
     private readonly ILogger<AzureServiceBusConsumer> _logger;
     private readonly string _connectionString;
     private readonly IPedidoService _pedidoService;
     private readonly string _topicName = "pedidos";
     private readonly string _subscriptionName = "processador";
+    private bool _disposed;
 
     public AzureServiceBusConsumer(
         ILogger<AzureServiceBusConsumer> logger,
@@ -42,6 +43,7 @@ public class AzureServiceBusConsumer : IServiceBusConsumer
         {
             _client = new ServiceBusClient(_connectionString);
             _processor = _client.CreateProcessor(_topicName, _subscriptionName, new ServiceBusProcessorOptions());
+            _sender = _client.CreateSender("pedidos-processados");
 
             _processor.ProcessMessageAsync += async args =>
             {
@@ -85,7 +87,6 @@ public class AzureServiceBusConsumer : IServiceBusConsumer
 
     private async Task HandleMessageFailureAsync(ProcessMessageEventArgs args, string messageBody, Exception ex)
     {
-        // Incrementa o contador de falhas e apos 3 tentativas envia para a Dead Letter Queue
         int failureCount = 0;
         if (args.Message.ApplicationProperties.TryGetValue("FailureCount", out var failureCountObj))
         {
@@ -123,6 +124,13 @@ public class AzureServiceBusConsumer : IServiceBusConsumer
 
         _logger.LogInformation($"Processando pedido: {pedido.ToLogString()}");
 
+        if (_pedidoService is PedidoService pedidoService)
+        {
+            var strategyName = pedidoService.GetImpostoStrategyName();
+            _logger.LogInformation($"Política de imposto utilizada: {strategyName}");
+            System.Diagnostics.Debug.WriteLine($"Política de imposto utilizada: {strategyName}");
+        }
+
         var imposto = _pedidoService.CalcularImposto(pedido);
 
         var pedidoProcessado = new PedidoProcessadoDto
@@ -134,10 +142,27 @@ public class AzureServiceBusConsumer : IServiceBusConsumer
             Imposto = imposto
         };
 
-        var sender = _client.CreateSender("pedidos-processados");
         var msg = new ServiceBusMessage(JsonSerializer.Serialize(pedidoProcessado));
-
-        await sender.SendMessageAsync(msg);
+        await _sender.SendMessageAsync(msg);
         _logger.LogInformation($"Pedido processado com sucesso: ID {pedido.PedidoId}, CientId: {pedido.ClienteId} Valor Total R${pedidoProcessado.ValorTotal:F2} Imposto R${pedidoProcessado.Imposto:F2}");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        if (_processor != null)
+        {
+            await _processor.DisposeAsync();
+        }
+        if (_sender != null)
+        {
+            await _sender.DisposeAsync();
+        }
+        if (_client != null)
+        {
+            await _client.DisposeAsync();
+        }
     }
 }

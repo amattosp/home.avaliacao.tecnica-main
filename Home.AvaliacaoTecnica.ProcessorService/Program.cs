@@ -23,14 +23,14 @@ public class Program
                 services.AddFeatureManagement();
 
                 // Registro de estratégias de imposto
-                services.AddSingleton<ImpostoReformaTributariaStrategy>();
-                services.AddSingleton<ImpostoVigenteStrategy>();
+                services.AddTransient<ImpostoReformaTributariaStrategy>();
+                services.AddTransient<ImpostoVigenteStrategy>();
 
                 // Registro da factory de estratégias
-                services.AddSingleton<ImpostoStrategyFactory>();
+                services.AddTransient<ImpostoStrategyFactory>();
 
                 // Registro da interface de estratégia com base na factory
-                services.AddSingleton<IImpostoStrategy>(provider =>
+                services.AddTransient<IImpostoStrategy>(provider =>
                 {
                     var featureManager = provider.GetRequiredService<IFeatureManager>();
                     var factory = provider.GetRequiredService<ImpostoStrategyFactory>();
@@ -42,8 +42,10 @@ public class Program
                     return factory.GetStrategy(usarReforma);
                 });
 
+                services.AddTransient<IPedidoService, PedidoService>();
+
                 // Registro do consumidor do Azure Service Bus
-                services.AddSingleton<IServiceBusConsumer>(sp =>
+                services.AddTransient<IServiceBusConsumer>(sp =>
                 {
                     var configuration = sp.GetRequiredService<IConfiguration>();
                     var connectionString = configuration.GetConnectionString("ServiceBus");
@@ -55,7 +57,6 @@ public class Program
 
                 // Registro do Hosted Service para processamento em background
                 services.AddHostedService<PedidoBackgroundService>();
-                services.AddScoped<IPedidoService, PedidoService>();
             })
             .Build()
             .Run();

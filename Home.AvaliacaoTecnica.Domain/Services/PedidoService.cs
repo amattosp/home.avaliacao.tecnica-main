@@ -17,4 +17,9 @@ public class PedidoService : IPedidoService
         var totalItens = pedido.Itens.Sum(i => i.Valor);
         return _estrategiaImposto.CalcularImposto(totalItens);
     }
+
+    public string GetImpostoStrategyName()
+    {
+        return _estrategiaImposto.GetType().Name;
+    }
 }
