@@ -1,5 +1,6 @@
 using Home.AvaliacaoTecnica.Application;
-using Home.AvaliacaoTecnica.Application.Services;
+using Home.AvaliacaoTecnica.Application.Config;
+using Home.AvaliacaoTecnica.Application.Services.Wrapper;
 using Home.AvaliacaoTecnica.Domain.Interfaces;
 using Home.AvaliacaoTecnica.Infra.Data.Context;
 using Home.AvaliacaoTecnica.Infra.Data.Repositories;
@@ -51,8 +52,18 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblies(assemblies)
 );
 
-// Azure Service Bus configuration
-builder.Services.AddSingleton<IServiceBusSenderFactory, ServiceBusSenderFactory>();
+//Configuracao do Azure Service Bus
+builder.Services.AddTransient<IServiceBusSenderWrapper, ServiceBusSenderWrapper>();
+builder.Services.AddAzureServiceBusConfiguration(
+    sbBuilder => sbBuilder
+                        .AddSender(
+                            "TopicSender",
+                            "pedidos")
+                        .AddProcessor(
+                            "TopicProcessor",
+                            "pedidos",
+                            "processado"));
+
 builder.Services.AddSingleton(Log.Logger);
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 

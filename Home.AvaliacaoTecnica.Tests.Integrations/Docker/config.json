@@ -1,0 +1,45 @@
+{
+  "Authentication": {
+    "Rules": [
+      {
+        "KeyName": "RootManageSharedAccessKey",
+        "KeyValue": "local",
+        "Claims": [ "Manage", "Send", "Listen" ]
+      }
+    ]
+  },  
+  "UserConfig": {
+        "Namespaces": [
+            {
+                "Name": "sbemulatorns",
+                "Topics": [
+                  {
+                    "Name": "pedidos",
+                    "Properties": {
+                      "DefaultMessageTimeToLive": "PT1H",
+                      "DuplicateDetectionHistoryTimeWindow": "PT20S",
+                      "RequiresDuplicateDetection": false
+                    },
+                    "Subscriptions": [
+                      {
+                        "Name": "processador",
+                        "Properties": {
+                          "DeadLetteringOnMessageExpiration": false,
+                          "DefaultMessageTimeToLive": "PT1H",
+                          "LockDuration": "PT1M",
+                          "MaxDeliveryCount": 10,
+                          "ForwardDeadLetteredMessagesTo": "",
+                          "ForwardTo": "",
+                          "RequiresSession": false
+                        }
+                      }
+                    ]
+                  }
+                ]
+            }
+        ],
+        "Logging": {
+            "Type": "File"
+        }
+    }
+}

@@ -1,23 +1,18 @@
 ﻿using Home.AvaliacaoTecnica.Domain.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Home.AvaliacaoTecnica.Domain.Strategies
+namespace Home.AvaliacaoTecnica.Domain.Strategies;
+
+public class ImpostoStrategyFactory
 {
-    public class ImpostoStrategyFactory
+    private readonly ImpostoVigenteStrategy _vigente;
+    private readonly ImpostoReformaTributariaStrategy _reforma;
+
+    public ImpostoStrategyFactory(ImpostoVigenteStrategy vigente, ImpostoReformaTributariaStrategy reforma)
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public ImpostoStrategyFactory(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
-        public IImpostoStrategy GetStrategy(bool usarReformaTributaria)
-        {
-            return usarReformaTributaria
-                ? _serviceProvider.GetRequiredService<ImpostoReformaTributariaStrategy>()
-                : _serviceProvider.GetRequiredService<ImpostoVigenteStrategy>();
-        }
+        _vigente = vigente;
+        _reforma = reforma;
     }
 
+    public IImpostoStrategy GetStrategy(bool usarReformaTributaria)
+        => usarReformaTributaria ? _reforma : _vigente;
 }
