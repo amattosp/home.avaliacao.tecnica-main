@@ -29,8 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Home.AvaliacaoTecnica.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing.AzureServiceBus", "Testing.AzureServiceBus\Testing.AzureServiceBus.csproj", "{CC7BA52E-F8A0-4355-943C-887DF4180146}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestBenchApi.Tests", "TestBenchApi.Tests\TestBenchApi.Tests.csproj", "{473D5C0D-17A0-4830-B994-089B79D6D0DC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,10 +75,6 @@ Global
 		{CC7BA52E-F8A0-4355-943C-887DF4180146}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC7BA52E-F8A0-4355-943C-887DF4180146}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC7BA52E-F8A0-4355-943C-887DF4180146}.Release|Any CPU.Build.0 = Release|Any CPU
-		{473D5C0D-17A0-4830-B994-089B79D6D0DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{473D5C0D-17A0-4830-B994-089B79D6D0DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{473D5C0D-17A0-4830-B994-089B79D6D0DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{473D5C0D-17A0-4830-B994-089B79D6D0DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,7 +85,6 @@ Global
 		{920F2813-AEF0-44F9-8CEA-3D46C075C19F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{678DDED8-1535-48E2-827F-6975D126B320} = {920F2813-AEF0-44F9-8CEA-3D46C075C19F}
 		{CC7BA52E-F8A0-4355-943C-887DF4180146} = {920F2813-AEF0-44F9-8CEA-3D46C075C19F}
-		{473D5C0D-17A0-4830-B994-089B79D6D0DC} = {920F2813-AEF0-44F9-8CEA-3D46C075C19F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {35E335E2-1D74-4DFD-B202-305C1F94F870}

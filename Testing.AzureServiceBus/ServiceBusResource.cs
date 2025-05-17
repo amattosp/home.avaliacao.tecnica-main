@@ -1,8 +1,6 @@
-﻿using Azure.Messaging;
-using Azure.Messaging.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using System.Text.Json;
 using Testcontainers.ServiceBus;
 using Testing.AzureServiceBus.Logging;
 using Xunit.Abstractions;
@@ -126,16 +124,6 @@ public class ServiceBusResource : IAsyncDisposable
             Debug.WriteLine($"Error consuming message: {ex.Message}");
             throw;
         }
-    }
-
-    private static TMessage ConverterCloudEvent<TMessage>(string content)
-    {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        return JsonSerializer.Deserialize<TMessage>(content, options)!;
     }
 
     public async ValueTask DisposeAsync()
